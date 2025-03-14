@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birth Chart Widget</title>
+    <script type="text/javascript" src="https://astro-charts.com/client/common/widget/js/widget-birthchart.min.js"></script>
+    <style>
+        /* Initially hide certain fields */
+        .hidden_input, .date-container, .name, #error {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="widget_container">
+        <div>
+            <h2 id="bc_astro"> 
+                Explore your free birth chart with the 
+                <a target="_blank" href="https://astro-charts.com/tools/new/birth-chart/"> 
+                    birth chart calculator 
+                </a>. 
+            </h2>
+        </div>
+    </div>
+
+    <div class="new_box">
+        <div class="error" id="error">Error Message</div>
+        <section>
+            <input class="default-input full-width-input name" name="name" placeholder="Your name" autocomplete="new-password">
+        </section>
+        <section>
+            <input class="hidden_input geo_pk" name="geo_pk" value="New York"> <!-- Example Value -->
+        </section>
+        <section class="date-container">
+            <input class="hidden_input date" name="date" type="hidden">
+        </section>
+        <div class="form-group">
+            <button id="create_chart_birth" class="btn btn-primary btn-hg btn-submit">Create Your Chart</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let hiddenInputs = document.querySelectorAll('.hidden_input'); 
+            let dateContainer = document.querySelector('.date-container');
+            let nameField = document.querySelector('.name'); 
+            let errorDiv = document.getElementById('error');
+
+            // Hide elements when the page loads
+            hiddenInputs.forEach(input => input.style.display = "none");
+            if (dateContainer) dateContainer.style.display = "none";
+            if (nameField) nameField.style.display = "none";
+            if (errorDiv) errorDiv.style.display = "none";
+
+            // Button click event
+            document.getElementById("create_chart_birth")?.addEventListener("click", function (event) {
+                event.preventDefault(); // Prevent default form submission
+
+                // Reveal hidden fields
+                hiddenInputs.forEach(input => input.style.display = "block");
+                if (dateContainer) dateContainer.style.display = "block";
+                if (nameField) nameField.style.display = "block";
+                if (errorDiv) errorDiv.style.display = "block";
+
+                // Get the geo location value
+                const geo = document.querySelector('.new_box')?.querySelector('.geo_pk')?.value;
+                console.log(geo);
+
+                // Update the URL with geo parameter
+                if (geo) {
+                    let url = new URL(window.location);
+                    url.searchParams.set("geo", geo);
+                    window.history.pushState({}, "", url);
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
