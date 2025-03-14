@@ -5,49 +5,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Birth Chart Widget</title>
 
-    <!-- jQuery (Needed for Astro-Charts script) -->
+    <!-- jQuery (Ensure it's loaded before scripts that might need it) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- Astro-Charts Widget Script -->
     <script type="text/javascript" src="https://astro-charts.com/client/common/widget/js/widget-birthchart.min.js"></script>
 
     <style>
-        /* Initially hide certain fields */
-        .hidden_input, .date-container, .name, #error {
+        /* Initially hide elements */
+        .hidden_input, .date-container, .name, #error, #bc_astro {
             display: none;
         }
     </style>
 </head>
 <body>
 
-    <!-- Astro-Charts Widget -->
     <div id="widget_container">
-        <div>
-            <h2 id="bc_astro"> 
-                Explore your free birth chart with the 
-                <a target="_blank" href="https://astro-charts.com/tools/new/birth-chart/"> 
-                    birth chart calculator 
-                </a>. 
-            </h2>
+        <div class="widget-container widget-birthchart">
+            <div id="birth_form" class="new-form tools-forms new-form">
+                <h1>Create Your Birth Chart</h1>
+                <div class="new_box">
+                    <div class="error" id="error">Check for errors in your form. Please enter name.</div>
+
+                    <section class="has-error">
+                        <input class="default-input full-width-input name" name="name" placeholder="Your name" autocomplete="new-password">
+                    </section>
+
+                    <section>
+                        <div class="input-dd-container">
+                            <input class="default-input full-width-input geolocationwidget tt-input" placeholder="Enter your city, state, country" autocomplete="off">
+                        </div>
+                    </section>
+
+                    <input name="place" class="hidden_input place" type="hidden" value="Wichita, Kansas, United States">
+                    <input name="geo_pk" class="hidden_input geo_pk" type="hidden" value="1036">
+                    <input name="date" class="hidden_input date" type="hidden">
+
+                    <section class="date-container">
+                        <div class="date-group has-error">
+                            <input class="default-input form-control input month center-align" placeholder="MM" maxlength="2" name="month">
+                            <span class="date-slash">/</span>
+                            <input class="default-input form-control input day center-align" placeholder="DD" maxlength="2" name="day">
+                            <span class="date-slash">/</span>
+                            <input class="default-input form-control input year center-align" placeholder="YYYY" maxlength="4" name="year">
+                        </div>
+                        <div class="time-group">
+                            <input class="center-align default-input hour" placeholder="hh" maxlength="2" name="hour">
+                            <span class="time-colon">:</span>
+                            <input class="center-align default-input min" placeholder="mm" maxlength="2" name="min">
+                            <div class="form_set ampm_form_set">
+                                <label class="radio">
+                                    <input type="radio" name="timeRadio" value="am"> AM
+                                </label>
+                                <label class="radio">
+                                    <input type="radio" name="timeRadio" value="pm" checked> PM
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="form-group">
+                        <button id="create_chart_birth" class="btn btn-primary btn-hg btn-submit">Create Your Chart</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chart-area" class="chart-container">
+                <div class="chart_display_wrapper">
+                    <div class="chart_display" id="chart_display">
+                        <div id="raphael_birth"></div>
+                    </div>
+                </div>
+
+                <div class="chart_details">
+                    <h4>Chart Details</h4>
+                    <div class="tab_details">
+                        <div class="h_attrs"> Name: <span id="chart_name"></span></div>
+                        <div class="h_attrs"> Birthday: <span id="chart_date"></span></div>
+                        <div class="h_attrs"> Place of Birth: <span id="chart_place"></span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ibox ibox_wide" id="planet_view_birth">
+                <h4>Planets</h4>
+                <div class="inner_ibox">
+                    <div class="planet_brief_box"></div>
+                </div>
+            </div>
+
+            <div class="ibox ibox_wide" id="aspect_view_birth">
+                <h4>Aspects</h4>
+                <div class="inner_ibox">
+                    <div class="aspect_brief_box"></div>
+                </div>
+            </div>
+
+            <div class="ibox ibox_wide" id="pattern_view_birth">
+                <h4>Chart Patterns</h4>
+                <div class="inner_ibox"></div>
+            </div>
         </div>
     </div>
 
-    <!-- Form -->
-    <div class="new_box">
-        <div class="error" id="error">Error Message</div>
-        <section>
-            <input class="default-input full-width-input name" name="name" placeholder="Your name" autocomplete="new-password">
-        </section>
-        <section>
-            <input class="hidden_input geo_pk" name="geo_pk" value="New York"> <!-- Example Value -->
-        </section>
-        <section class="date-container">
-            <input class="hidden_input date" name="date" type="hidden">
-        </section>
-        <div class="form-group">
-            <button id="create_chart_birth" class="btn btn-primary btn-hg btn-submit">Create Your Chart</button>
-        </div>
-    </div>
+    <h2 id="bc_astro">
+        Explore your free birth chart with the
+        <a target="_blank" href="https://astro-charts.com/tools/new/birth-chart/">birth chart calculator</a>.
+    </h2>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -56,7 +120,7 @@
             let nameField = document.querySelector('.name'); 
             let errorDiv = document.getElementById('error');
 
-            // Hide elements when the page loads
+            // Hide elements on page load
             hiddenInputs.forEach(input => input.style.display = "none");
             if (dateContainer) dateContainer.style.display = "none";
             if (nameField) nameField.style.display = "none";
@@ -80,7 +144,7 @@
                 if (errorDiv) errorDiv.style.display = "block";
 
                 // Get the geo location value
-                const geo = document.querySelector('.new_box')?.querySelector('.geo_pk')?.value;
+                const geo = document.querySelector('.geo_pk')?.value;
                 console.log("Geo Location:", geo);
 
                 // Update the URL with geo parameter
